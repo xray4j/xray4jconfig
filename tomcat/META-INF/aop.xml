@@ -1,0 +1,25 @@
+<aspectj>
+	<aspects>
+		
+		<concrete-aspect name="com.xray4j.init.plugin.InitializeTomcatTrackingHttpImpl" extends="com.xray4j.init.plugin.http.AbstractInitializeTrackingHttpRequestAspect">
+	 		 <pointcut name="initializeTracking" expression="execution(* org.apache.catalina.core.StandardHostValve.invoke(..))" />
+		</concrete-aspect>
+		
+		<concrete-aspect name="com.xray4j.core.plugin.http.DataExtractionFromHttpRequestImpl" extends="com.xray4j.core.plugin.http.DataExtractionHttpRequestAspect">
+	 		 <pointcut name="classesToInstrument" expression="execution(* org.apache.catalina.core.StandardHostValve.invoke(..))" />
+		</concrete-aspect>
+	
+		<concrete-aspect name="com.xray4j.core.plugin.TraceTomcatSampleApplicationClasses" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+		<pointcut name="classesToInstrument" expression="execution(public * org.apache.catalina..*(..)) ||
+														 execution(public * org.apache.jasper..*(..)) ||
+														 execution(public * org.apache.tomcat..*(..)) ||
+														 execution(public * jsp2.examples..*(..)) ||
+														 execution(public * listeners..*(..)) ||
+														 execution(public * examples..*(..))"/>
+		</concrete-aspect>
+															 
+	</aspects>
+	
+		<weaver options="-verbose">
+	</weaver>
+</aspectj>

@@ -1,0 +1,51 @@
+<aspectj>
+	<aspects>
+	
+	 	<concrete-aspect name="com.xray4j.init.plugin.InitializeElasticSearchTracking" extends="com.xray4j.init.plugin.AbstractInitializeTrackingAspect">
+			<pointcut name="initializeTracking" expression="execution(* org.elasticsearch.http.netty4.Netty4HttpServerTransport.dispatchRequest(..))"/>
+		</concrete-aspect>
+
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractRequest" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * org.elasticsearch.rest.RestController.dispatchRequest(..))" />
+		</concrete-aspect>
+
+<!-- 
+execution(* org.elasticsearch.transport.RequestHandlerRegistry.processMessageReceived(..)) || 
+															execution(protected * org.elasticsearch.http.netty4.Netty4HttpServerTransport.dispatchRequest(..)) || 
+ -->
+
+
+		<concrete-aspect name="com.xray4j.core.plugin.TraceElasticSearchClasses" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * org.apache.lucene.document..*(..)) ||
+															 execution(public * org.apache.lucene.search..*(..)) ||
+															 execution(public * org.apache.lucene.index..*(..)) ||
+															 execution(public * org.elasticsearch.tasks..*(..)) ||
+															 execution(public * org.elasticsearch.action.support.TransportAction+.execute(..)) ||
+															 execution(public * org.elasticsearch.index..*(..)) ||
+															 execution(public * org.elasticsearch.search..*(..)) ||
+															 execution(public * org.elasticsearch.indices..*(..)) ||
+															 execution(public * org.elasticsearch.cluster.routing..*(..)) ||
+															 execution(public * org.elasticsearch.cluster.metadata..*(..)) ||
+															 execution(public * org.elasticsearch.rest..*(..)) ||
+															 execution(public * org.elasticsearch.http..*(..))"/>
+		</concrete-aspect>	
+		
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractShardID_SEARCHNODE" extends="com.xray4j.core.plugin.DataExtractionAspectThisObjectMethods">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * org.elasticsearch.index.shard.ShardId.getIndex())" />
+		</concrete-aspect>
+		
+
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractRoutingTableInfo_SEARCHNODE" extends="com.xray4j.core.plugin.DataExtractionAspectThisObjectMethods">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * org.elasticsearch.cluster.routing.RoutingTable.index(..))" />
+		</concrete-aspect>
+
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractDataFromTask_TASK" extends="com.xray4j.core.plugin.DataExtractionAspectConstructorArguments">
+	 		 <pointcut name="classesToInstrument" expression="execution(org.elasticsearch.tasks.Task+.new(..))" />
+		</concrete-aspect>	
+
+		
+	</aspects>
+	
+		<weaver options="-verbose">
+	</weaver>
+</aspectj>

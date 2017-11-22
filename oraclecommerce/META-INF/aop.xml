@@ -1,0 +1,159 @@
+<aspectj>
+	<aspects>
+	
+		<concrete-aspect name="com.xray4j.init.plugin.InitializeOCTrackingHttpImpl" extends="com.xray4j.init.plugin.http.AbstractInitializeTrackingHttpRequestAspect">
+	 		 <pointcut name="initializeTracking" expression="execution(public * atg.servlet.pipeline.HeadPipelineServlet.service(..))" />
+		</concrete-aspect>
+		
+		<concrete-aspect name="com.xray4j.core.plugin.TracePathDynamoPipelineServlet" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * atg.servlet.pipeline.HeadPipelineServlet.service(..))" />
+		</concrete-aspect>	
+		
+				
+		<!-- Aspect used to extract data from http request. -->
+		<concrete-aspect name="com.xray4j.core.plugin.http.DataExtractionFromHttpRequestImpl" extends="com.xray4j.core.plugin.http.DataExtractionHttpRequestAspect">
+	 		 <pointcut name="classesToInstrument" expression="execution(* atg.servlet.pipeline.DynamoPipelineServlet.service(..))" />
+		</concrete-aspect>
+		
+		
+					<!-- Below  aspects are used to collect the bean names in oracle commerce. -->
+		<concrete-aspect name="com.xray4j.core.plugin.spring.OCBeanNamesExtractionAspectImpl" extends="com.xray4j.core.plugin.ReturnValueBeanClassExtractionAspect">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * atg.nucleus.Nucleus.resolveName(atg.nucleus.naming.ComponentName, atg.naming.NameContext, boolean)) || execution(public * atg.nucleus.MultiRootNameResolver.resolveName(atg.nucleus.naming.ComponentName)) || execution(public * atg.nucleus.NucleusNameResolver.resolveName(atg.nucleus.naming.ComponentName))" />
+		</concrete-aspect>
+		
+						 <!-- Tracks based on dynamically constructed bean class name list during startup. -->
+		<concrete-aspect name="com.xray4j.core.plugin.TraceOCDynamicListImpl" extends="com.xray4j.core.plugin.spring.AbstractTracePathAspectDynamicList">
+			<pointcut name="classesToInstrument" expression="execution(public * atg.adapter.gsa..*(..)) || execution(public * atg.commerce..*(..)) || execution(public * atg.dms..*(..)) || execution(public * atg.droplet..*(..)) || execution(public * atg.endeca..*(..)) || execution(public * atg.multisite..*(..)) || execution(public * atg.nucleus..*(..)) || execution(public * atg.process..*(..)) || execution(public * atg.projects..*(..)) || execution(public * atg.repository..*(..)) || execution(public * atg.scenario..*(..)) || execution(public * atg.search..*(..)) || execution(public * atg.security..*(..)) || execution(public * atg.server..*(..)) || execution(public * atg.service..*(..)) || execution(public * atg.servlet..*(..)) || execution(public * atg.targeting..*(..)) || execution(public * atg.ui..*(..)) || execution(public * atg.userprofiling..*(..)) || execution(public * com.endeca..*(..))" />
+			 <pointcut name="toAvoid" expression="execution(public * atg.nucleus.Nucleus.getComponent*(..)) || within(atg.nucleus.ComponentProxy*) 
+			 || execution(public * atg.repository.ItemDescriptorImpl.getRepository()) 
+			 || execution(public * atg.nucleus.logging.ApplicationLogging.*(..))
+			 || execution(public * atg.adapter.gsa.GSARepository.is*())
+			 || execution(public *  atg.servlet.jstl.DynamoELResolver.*(..))"
+			  /><!-- This method is called too many times, can cause orphan nodes when over the limit of max calls for one method. -->
+		</concrete-aspect>	
+		
+		
+				<!-- Used to trace and extract data from cache -->
+		<concrete-aspect name="com.xray4j.core.plugin.ItemCacheImpl" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * atg.adapter.gsa.ItemCacheInterface.getItem(..))" />
+		</concrete-aspect>	
+		
+		<concrete-aspect name="com.xray4j.core.plugin.ItemCacheExtractCacheKey_CACHENODE" extends="com.xray4j.core.plugin.DataExtractionAspectThisObjectMethods">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * atg.adapter.gsa.ItemCacheInterface.getItem(..))" />
+		</concrete-aspect>
+		
+		<concrete-aspect name="com.xray4j.core.plugin.QueryCacheImpl" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * atg.repository.query.QueryCacheable.findOrCreateEntry(..))" />
+		</concrete-aspect>	
+		
+		<concrete-aspect name="com.xray4j.core.plugin.QueryExtractCacheKey_CACHENODE" extends="com.xray4j.core.plugin.DataExtractionAspectThisObjectMethods">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * atg.repository.query.QueryCacheable.findOrCreateEntry(..))" />
+		</concrete-aspect>
+				<!-- Trace Servlets -->
+		<concrete-aspect name="com.xray4j.core.plugin.TraceServletRequests" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * javax.servlet.Servlet.service(..))" />
+		</concrete-aspect>	
+		
+				
+				<!-- Aspects used to extract data and trace JDBC calls. -->
+				
+							<!-- Data extraction for GSARepository -->
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractSQLStatementData_JDBC" extends="com.xray4j.core.plugin.DataExtractionAspectThisObjectMethods">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * atg.adapter.gsa.SQLStatement.execute*(..))" />
+		</concrete-aspect>
+
+
+			<!-- Data extraction for GSARepository -->
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractGSARepositoryData" extends="com.xray4j.core.plugin.DataExtractionAspectThisObjectMethods">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * atg.adapter.gsa.GSARepository.getItem(..)) || execution(public * atg.adapter.gsa.GSARepository.ensureTransaction(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractGSAItemData_ORMITEM" extends="com.xray4j.core.plugin.DataExtractionAspectThisObjectMethods">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * atg.adapter.gsa.GSAItem.getPropertyValue(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractItemDescriptorData_ORMITEMTYPE" extends="com.xray4j.core.plugin.DataExtractionAspectThisObjectMethods">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * atg.repository.ItemDescriptorImpl.getItemDescriptorName())" />
+		</concrete-aspect>
+
+		
+		<!-- Track JMS Messages -->
+		<concrete-aspect name="com.xray4j.core.plugin.TraceJMSMessages" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * javax.jms.Message.setJMSType(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractJMSMessageId_JMSMESSAGE" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * javax.jms.Message.setJMSType(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.TraceJMSMessagesSink" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * atg.dms.patchbay.MessageSink.receiveMessage(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractJMSMessageSinkMessage_JMSSINK" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * atg.dms.patchbay.MessageSink.receiveMessage(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.TraceJMSMessagesSourceContext" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * atg.dms.patchbay.MessageSourceContext.sendMessage(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractJMSMessageSource_JMSSOURCE" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * atg.dms.patchbay.MessageSourceContext.sendMessage(..))" />
+		</concrete-aspect>		
+		
+				
+		<!-- Track commerce pipelines. -->
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractPipelineId_PROCESSCHAIN" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * atg.commerce.pipeline.CommercePipelineManager.runProcess(..))" />
+		</concrete-aspect>
+		
+		<!-- Track commerce pipelines. -->
+		<concrete-aspect name="com.xray4j.core.plugin.ExtracPipelineProcessorInfo_PROCESSCHAIN" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * atg.service.pipeline.PipelineProcessor.runProcess(..))" />
+		</concrete-aspect>
+		
+		
+		<!-- Endeca -->
+		<concrete-aspect name="com.xray4j.core.plugin.TraceCartridgeHandler" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * com.endeca.infront.assembler.CartridgeHandler+.initialize(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.TraceCartridgeHandlerExtractData" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+			<pointcut name="classesToInstrument" expression="execution(public * com.endeca.infront.assembler.CartridgeHandler+.initialize(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.TraceContentItem" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * com.endeca.infront.assembler.ContentItem.getType(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.TraceContentItemExtraceData" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+			<pointcut name="classesToInstrument" expression="execution(public * com.endeca.infront.assembler.ContentItem.getType(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.TraceAssembler" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * com.endeca.infront.assembler.support.AbstractAssembler+.assemble(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.TraceAssemblerExtraceData" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+			<pointcut name="classesToInstrument" expression="execution(public * com.endeca.infront.assembler.support.AbstractAssembler+.assemble(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractEndecaMDEXConnection_SEARCHNODE" extends="com.xray4j.core.plugin.DataExtractionAspectThisObjectMethods">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * com.endeca.infront.navigation.model.MdexResource.setHost(..))" />
+		</concrete-aspect>
+
+		
+		<!-- Track JSP Page -->
+		<concrete-aspect name="com.xray4j.core.plugin.TraceJSPPages" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * org.apache.jasper.servlet.JspServletWrapper.getServlet(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.JSPPagesJspServletExtractData_JSPNODE" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+			<pointcut name="classesToInstrument" expression="execution(public * org.apache.jasper.servlet.JspServletWrapper.getServlet(..))" />
+		</concrete-aspect>
+
+		
+
+				
+ 		<concrete-aspect name="com.xray4j.init.plugin.InitializeTrackingTest" extends="com.xray4j.init.plugin.AbstractInitializeTrackingAspect">
+			<pointcut name="initializeTracking" expression="execution(* org.xray4j.agent.dto.test.TestTrackingOne.tracking1())" />
+		</concrete-aspect>
+		
+		<concrete-aspect name="com.xray4j.core.plugin.TracePathTest" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * org.xray4j.agent.dto.test..*(..))" />
+		</concrete-aspect>
+
+		<concrete-aspect name="aspectConfigPrecedence"  precedence="*..*Initialize*,*..*Trace*, *"/>
+                
+	</aspects>
+	<weaver options="-verbose">
+	</weaver>
+</aspectj>
+      

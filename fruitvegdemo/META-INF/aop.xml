@@ -1,0 +1,25 @@
+<aspectj>
+	<aspects>
+	
+		<!-- Step1: Where to start tracking from  -->
+ 		<concrete-aspect name="com.xray4j.InitializeTracking" extends="com.xray4j.init.plugin.AbstractInitializeTrackingAspect">
+			<pointcut name="initializeTracking" expression="execution(* com.fruit.Apple.appleMethod())" />
+		</concrete-aspect>
+		
+		<!-- Step2: Which classes and packages to track. -->
+		<concrete-aspect name="com.xray4j.TracePath" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="
+			execution(public * com.fruit..*(..)) ||
+			execution(public * com.tree..*(..))" />
+		</concrete-aspect>
+		
+		<!-- Step3: What data to extract. -->
+		<concrete-aspect name="com.xray4j.ExtractData" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * com.fruit.Orange.orangeMethod(..))" />
+		</concrete-aspect>
+
+		<concrete-aspect name="aspectConfigPrecedence"  precedence="*..*Initialize*,*..*TracePath*, *"/>
+	</aspects>
+
+</aspectj>
+      
