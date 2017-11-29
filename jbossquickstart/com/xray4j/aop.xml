@@ -1,0 +1,82 @@
+<aspectj>
+	<aspects>
+
+				<!-- Aspects used to initialize tracking http requests. -->
+		<concrete-aspect name="com.xray4j.init.plugin.InitializeUnderTowTracking" extends="com.xray4j.init.plugin.http.AbstractInitializeTrackingHttpRequestAspect">
+	 		 <pointcut name="initializeTracking" expression="execution(* io.undertow.servlet.handlers.ServletInitialHandler+.dispatchRequest(..))" />
+		</concrete-aspect>
+
+
+		io.undertow.server.handlers.PredicateHandler.handleRequest
+		io.undertow.servlet.handlers.ServletHandler.handleRequest
+		io.undertow.servlet.handlers.security.ServletSecurityRoleHandler.handleRequest
+
+
+
+		<!-- Aspect used to extract data from http request. -->
+		<concrete-aspect name="com.xray4j.core.plugin.http.DataExtractionFromHttpRequestImpl" extends="com.xray4j.core.plugin.http.DataExtractionHttpRequestAspect">
+	 		 <pointcut name="classesToInstrument" expression="execution(* javax.faces.webapp.FacesServlet.service(..))" />
+		</concrete-aspect>
+
+				 <!-- Tracks based on manually created (optional) class name list during startup. -->
+		<concrete-aspect name="com.xray4j.core.plugin.TracePath" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(* org.jboss.as.quickstarts..*(..)) ||
+				 																							 execution(public * io.undertow.servlet.handlers.ServletInitialHandler.dispatchRequest(..)) ||
+				 																							 execution(public * io.undertow.servlet.handlers.ServletHandler.handleRequest(..)) ||
+				 																							 execution(public * io.undertow.servlet.handlers.security.ServletSecurityRoleHandler.handleRequest(..)) ||
+				                                               execution(public * io.undertow.servlet.handlers.ServletDispatchingHandler.handleRequest(..)) ||
+																											 execution(public * javax.faces.webapp.FacesServlet.service(..)) ||
+																											 execution(public * javax.faces.lifecycle.Lifecycle+.*(..)) ||
+																											 execution(public * javax.faces.component.UIViewRoot.restore*(..)) ||
+																											 execution(public * javax.faces.component.UIViewRoot.create*(..)) ||
+																											 execution(public * javax.faces.component.html.Html*.*(..)) ||
+																											 execution(public * javax.validation.Validator+.validate*(..)) ||
+																											 execution(public * javax.mail.Address.*(..)) ||
+																											 execution(public * javax.mail.Message.*(..)) ||
+																											 execution(public * javax.mail.Transport.*(..)) ||
+																											 execution(public * javax.mail.Service.*(..)) ||
+																											 execution(public * org.apache.wicket.protocol.http.WicketFilter.*(..)) ||
+																											 execution(public * org.apache.wicket.request.cycle.RequestCycle.process*(..)) ||
+																											 execution(public * org.apache.wicket.IRequestCycleProvider.*(..)) ||
+																											 execution(public * org.apache.wicket.IRequestTarget+.*(..)) ||
+																											 execution(public * org.apache.wicket.Page+.*(..)) ||
+																											 execution(public * org.apache.wicket.Component+.*(..)) ||
+																											 execution(public * com.sun.faces.lifecycle.Phase+.*(..))" />
+
+
+		</concrete-aspect>
+
+		<!-- extract data from validator method arguments. -->
+		<concrete-aspect name="com.xray4j.core.plugin.AbstractTracePathAspectExtractValidatorArgs" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * javax.validation.Validator+.validate*(..))" />
+		</concrete-aspect>
+
+		<concrete-aspect name="com.xray4j.core.plugin.ExtractDataHTMLComponents_VIEW" extends="com.xray4j.core.plugin.DataExtractionAspectThisObjectMethods">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * javax.faces.component.html.Html*.getStyleClass(..))" />
+		</concrete-aspect>
+
+				<!-- Aspects used to extract data and trace JDBC calls. -->
+		<concrete-aspect name="com.xray4j.core.plugin.jdbc.DataExtractionJDBCPreparedStatementAspectImpl" extends="com.xray4j.core.plugin.jdbc.DataExtractionJDBCPreparedStatementAspect">
+	 		 <pointcut name="classesToInstrument" expression="execution(java.sql.* java.sql.Connection.prepareStatement(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.jdbc.DataExtractionJDBCStatementAspectImpl" extends="com.xray4j.core.plugin.jdbc.DataExtractionJDBCStatementAspect">
+	 		 <pointcut name="classesToInstrument" expression="execution(public * java.sql.Statement.execute*(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.TraceJDBCStatementPathImpl" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * java.sql.Statement.execute*(..)) || execution(public * java.sql.PreparedStatement.execute*(..)) || execution(public * java.sql.Statement.getResultSet*(..))" />
+		</concrete-aspect>
+
+		<!-- Track JSP Page -->
+		<concrete-aspect name="com.xray4j.core.plugin.TraceJSPPages" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
+			<pointcut name="classesToInstrument" expression="execution(public * org.apache.jasper.servlet.JspServlet*.service(..))" />
+		</concrete-aspect>
+		<concrete-aspect name="com.xray4j.core.plugin.JSPPagesJspServletExtractData_JSPNODE" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
+			<pointcut name="classesToInstrument" expression="execution(public * org.apache.jasper.servlet.JspServlet*.service(..))" />
+		</concrete-aspect>
+
+		<concrete-aspect name="aspectConfigPrecedence"  precedence="*..*Initialize*, *"/>
+
+	</aspects>
+	<weaver options="-Xset:weaveJavaPackages=true,weaveJavaxPackages=true -verbose">
+	</weaver>
+</aspectj>

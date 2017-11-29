@@ -1,6 +1,13 @@
 <aspectj>
 	<aspects>
 	
+					<!-- Aspects used to initialize tracking http requests. -->
+
+		<concrete-aspect name="com.xray4j.init.plugin.InitializeTomcatTrackingHttpImpl" extends="com.xray4j.init.plugin.http.AbstractInitializeTrackingHttpRequestAspect">
+	 		 <pointcut name="initializeTracking" expression="execution(* org.apache.catalina.core.StandardHostValve.invoke(..))" />
+		</concrete-aspect>
+		
+		
 			<!-- Below two aspects are used to collect the bean names in the spring context. SpringBeanNamesExtractionAspect,SpringBeanNamesBeanMethodExtractionAspect. -->
 		<concrete-aspect name="com.xray4j.core.plugin.spring.SpringBeanNamesExtractionAspectImpl" extends="com.xray4j.core.plugin.spring.SpringBeanNamesExtractionAspect">
 	 		 <pointcut name="classesToInstrument" expression="execution(public * org.springframework.beans.factory.support.DefaultListableBeanFactory.registerBeanDefinition(..))" />
@@ -99,11 +106,7 @@
 
 		
 		
-				<!-- Aspects used to initialize tracking http requests. -->
 
-		<concrete-aspect name="com.xray4j.init.plugin.InitializeTomcatTrackingHttpImpl" extends="com.xray4j.init.plugin.http.AbstractInitializeTrackingHttpRequestAspect">
-	 		 <pointcut name="initializeTracking" expression="execution(* org.apache.catalina.core.StandardHostValve.invoke(..))" />
-		</concrete-aspect>
 		
 		<!-- Aspect used to extract data from http request. -->
 		<concrete-aspect name="com.xray4j.core.plugin.http.DataExtractionFromHttpRequestImpl" extends="com.xray4j.core.plugin.http.DataExtractionHttpRequestAspect">
