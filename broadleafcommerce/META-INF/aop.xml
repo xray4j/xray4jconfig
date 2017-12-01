@@ -1,10 +1,17 @@
 <aspectj>
 	<aspects>
-	
-		<concrete-aspect name="com.xray4j.core.plugin.TracePathInit" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
-			<pointcut name="classesToInstrument" expression="execution(public * org.springframework.boot.SpringApplication.run(..))" />
+		<!-- Aspects used to initialize tracking http requests. -->
+
+		<concrete-aspect name="com.xray4j.init.plugin.InitializeTomcatTrackingHttpImpl" extends="com.xray4j.init.plugin.http.AbstractInitializeTrackingHttpRequestAspect">
+			 <pointcut name="initializeTracking" expression="execution(* org.apache.catalina.core.StandardHostValve.invoke(..))" />
 		</concrete-aspect>
 		
+		<!-- Aspect used to extract data from http request. -->
+		<concrete-aspect name="com.xray4j.core.plugin.http.DataExtractionFromHttpRequestImpl" extends="com.xray4j.core.plugin.http.DataExtractionHttpRequestAspect">
+			 <pointcut name="classesToInstrument" expression="execution(* org.apache.catalina.core.StandardHostValve.invoke(..))" />
+		</concrete-aspect>
+
+
 			<!-- Below two aspects are used to collect the bean names in the spring context. SpringBeanNamesExtractionAspect,SpringBeanNamesBeanMethodExtractionAspect. -->
 		<concrete-aspect name="com.xray4j.core.plugin.spring.SpringBeanNamesExtractionAspectImpl" extends="com.xray4j.core.plugin.spring.SpringBeanNamesExtractionAspect">
 	 		 <pointcut name="classesToInstrument" expression="execution(public * org.springframework.beans.factory.support.DefaultListableBeanFactory.registerBeanDefinition(..))" />
@@ -13,41 +20,33 @@
 		<concrete-aspect name="com.xray4j.core.plugin.spring.SpringBeanNamesBeanMethodExtractionAspectImpl" extends="com.xray4j.core.plugin.spring.SpringBeanNamesBeanMethodExtractionAspect">
 	 		 <pointcut name="classesToInstrument" expression="execution(* org.springframework.context.annotation.ConfigurationClassBeanDefinitionReader.loadBeanDefinitionsForBeanMethod(..))" />
 		</concrete-aspect>
-		
+
 				 <!-- Tracks based on dynamically constructed bean class name list during startup. -->
 		<concrete-aspect name="com.xray4j.core.plugin.TraceSpringBeansDynamicListImpl" extends="com.xray4j.core.plugin.spring.AbstractTracePathAspectDynamicList">
-			<pointcut name="classesToInstrument" expression="execution(public * org.springframework..*(..)) || execution(public * org.broadleafcommerce..*(..)) || execution(public * com.community..*(..)) || execution(public * org.thymeleaf..*(..)) || execution(public * org.apache.solr.client..*(..))" />
-		</concrete-aspect>	
-		
+			<pointcut name="classesToInstrument" expression="execution(public * org.springframework..*(..)) ||
+				                                               execution(public * org.broadleafcommerce..*(..)) ||
+																											 execution(public * com.community..*(..)) ||
+																											 execution(public * org.thymeleaf..*(..)) ||
+																											 execution(public * org.apache.solr.client..*(..))" />
+		</concrete-aspect>
+
 				 <!-- Tracks based on manually created (optional) class name list during startup. -->
 		<concrete-aspect name="com.xray4j.core.plugin.TraceSpringBeansImpl" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
 			<pointcut name="classesToInstrument" expression="execution(* org.springframework.web.servlet.DispatcherServlet.doService(..))" />
-		</concrete-aspect>	
-		
+		</concrete-aspect>
+
 		<!-- Used to trace and extract data from Ehcache -->
 		<concrete-aspect name="com.xray4j.core.plugin.TraceEHCacheImpl" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
 			<pointcut name="classesToInstrument" expression="execution(* net.sf.ehcache.Ehcache.get(java.lang.Object))" />
-		</concrete-aspect>	
-		
+		</concrete-aspect>
+
 		<concrete-aspect name="com.xray4j.core.plugin.ExtractCacheKey_CACHENODE" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
 	 		 <pointcut name="classesToInstrument" expression="execution(* net.sf.ehcache.Ehcache.get(java.lang.Object))" />
 		</concrete-aspect>
-		
+
 		<concrete-aspect name="com.xray4j.core.plugin.AbstractTracePathAspectEhCache_CACHENODE" extends="com.xray4j.core.plugin.DataExtractionAspectConstructorArguments">
 	 		 <pointcut name="classesToInstrument" expression="execution(net.sf.ehcache.Ehcache+.new(..))" />
-		</concrete-aspect>	
-		
-
-		<!--  Track and extract data from SOLR templates. -->
-		<!-- 
-		<concrete-aspect name="com.xray4j.core.plugin.AbstractTracePathSOLR" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
-	 		 <pointcut name="classesToInstrument" expression="execution(org.apache.solr.client.solrj.request.QueryRequest+.new(..))" />
 		</concrete-aspect>
-
-		<concrete-aspect name="com.xray4j.core.plugin.AbstractTracePathAspectSOLR_SOLR" extends="com.xray4j.core.plugin.DataExtractionAspectConstructorArguments">
-	 		 <pointcut name="classesToInstrument" expression="execution(org.apache.solr.client.solrj.request.QueryRequest+.new(..))" />
-		</concrete-aspect>	
-		 -->	
 
 		<concrete-aspect name="com.xray4j.core.plugin.AbstractTracePathSOLRClient" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
 	 		 <pointcut name="classesToInstrument" expression="execution(public * org.apache.solr.client.solrj.SolrClient+.query(..))" />
@@ -55,7 +54,7 @@
 
 		<concrete-aspect name="com.xray4j.core.plugin.AbstractTracePathAspectSOLRClient_SOLR" extends="com.xray4j.core.plugin.DataExtractionAspectMethodArguments">
 	 		 <pointcut name="classesToInstrument" expression="execution(public * org.apache.solr.client.solrj.SolrClient+.query(..))" />
-		</concrete-aspect>	
+		</concrete-aspect>
 
 		<!--  Track and extract data from Thymeleaf templates. -->
 		<concrete-aspect name="com.xray4j.core.plugin.AbstractTracePathThymeLeaf" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
@@ -65,7 +64,7 @@
 		<concrete-aspect name="com.xray4j.core.plugin.AbstractTracePathAspectThymeLeaf_VIEW" extends="com.xray4j.core.plugin.DataExtractionAspectConstructorArguments">
 	 		 <pointcut name="classesToInstrument" expression="execution(org.thymeleaf.templateresource.ITemplateResource+.new(..))" />
 		</concrete-aspect>
-		
+
 		<!--  Track and extract data from events. -->
 		<concrete-aspect name="com.xray4j.core.plugin.AbstractTracePathAspectEvents" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
 	 		 <pointcut name="classesToInstrument" expression="execution(org.springframework.context.ApplicationEvent+.new(..))" />
@@ -76,9 +75,9 @@
 	 		 <pointcut name="classesToInstrument" expression="execution(org.springframework.context.ApplicationEvent+.new(..))" />
 	 		 <pointcut name="toAvoid" expression="execution(private * org.springframework.context.ApplicationEvent.*(..))" />
 		</concrete-aspect>
-				
-		
-		
+
+
+
 				<!--  Track and extract data from ModelAndView. -->
 		<concrete-aspect name="com.xray4j.core.plugin.AbstractTracePathAspectModelAndView" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
 	 		 <pointcut name="classesToInstrument" expression="execution(org.springframework.web.servlet.ModelAndView.new(..))" />
@@ -87,7 +86,7 @@
 		<concrete-aspect name="com.xray4j.core.plugin.AbstractTracePathAspectExtractMVCData_MVCNODE" extends="com.xray4j.core.plugin.DataExtractionAspectConstructorArguments">
 	 		 <pointcut name="classesToInstrument" expression="execution(org.springframework.web.servlet.ModelAndView.new(..))" />
 		</concrete-aspect>
-		
+
 						<!--  Track and extract data from JSTLView. -->
 		<concrete-aspect name="com.xray4j.core.plugin.AbstractTracePathView" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
 	 		 <pointcut name="classesToInstrument" expression="execution(* org.springframework.web.servlet.view.AbstractView+.render(..))" />
@@ -101,19 +100,7 @@
 	 		 <pointcut name="classesToInstrument" expression="execution(* org.springframework.web.servlet.view.InternalResourceView.getRequestDispatcher(..))" />
 		</concrete-aspect>
 
-		
-		
-				<!-- Aspects used to initialize tracking http requests. -->
 
-		<concrete-aspect name="com.xray4j.init.plugin.InitializeTomcatTrackingHttpImpl" extends="com.xray4j.init.plugin.http.AbstractInitializeTrackingHttpRequestAspect">
-	 		 <pointcut name="initializeTracking" expression="execution(* org.apache.catalina.core.StandardHostValve.invoke(..))" />
-		</concrete-aspect>
-		
-		<!-- Aspect used to extract data from http request. -->
-		<concrete-aspect name="com.xray4j.core.plugin.http.DataExtractionFromHttpRequestImpl" extends="com.xray4j.core.plugin.http.DataExtractionHttpRequestAspect">
-	 		 <pointcut name="classesToInstrument" expression="execution(* org.apache.catalina.core.StandardHostValve.invoke(..))" />
-		</concrete-aspect>
-		
 				<!-- Aspects used to extract data and trace JDBC calls. -->
 		<concrete-aspect name="com.xray4j.core.plugin.jdbc.DataExtractionJDBCPreparedStatementAspectImpl" extends="com.xray4j.core.plugin.jdbc.DataExtractionJDBCPreparedStatementAspect">
 	 		 <pointcut name="classesToInstrument" expression="execution(java.sql.* java.sql.Connection.prepareStatement(..))" />
@@ -123,19 +110,19 @@
 		</concrete-aspect>
 		<concrete-aspect name="com.xray4j.core.plugin.TraceJDBCStatementPathImpl" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
 			<pointcut name="classesToInstrument" expression="execution(public * java.sql.Statement.execute*(..)) || execution(public * java.sql.PreparedStatement.execute*(..)) || execution(public * java.sql.Statement.getResultSet*(..))" />
-		</concrete-aspect>	
+		</concrete-aspect>
 
-	<!-- Aspects used for testing that tracking works. -->		
+	<!-- Aspects used for testing that tracking works. -->
  		<concrete-aspect name="com.xray4j.init.plugin.InitializeTrackingTest" extends="com.xray4j.init.plugin.AbstractInitializeTrackingAspect">
 			<pointcut name="initializeTracking" expression="execution(* org.xray4j.agent.dto.test.TestTrackingOne.tracking1())" />
 		</concrete-aspect>
-		
+
 		<concrete-aspect name="com.xray4j.core.plugin.TracePathTest" extends="com.xray4j.core.plugin.AbstractTracePathAspect">
 			<pointcut name="classesToInstrument" expression="execution(public * org.xray4j.agent.dto.test..*(..))" />
 		</concrete-aspect>
-		 
+
 		<concrete-aspect name="aspectConfigPrecedence"  precedence="*..*Initialize*, *"/>
-                
+
 	</aspects>
 	<weaver options="-verbose">
 	</weaver>
